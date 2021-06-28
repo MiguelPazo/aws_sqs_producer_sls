@@ -1,0 +1,38 @@
+service: producer-sqs-example
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 128
+  timeout: 10
+  profile: sls_credentials
+  region: ${file(./env/params-${self:custom.stage}.yml):app.region}
+  vpc: ${file(./env/params-${self:custom.stage}.yml):vpc}
+  environment:
+    NODE_ENV: 'production'
+    APP_ENV: ${file(./env/params-${self:custom.stage}.yml):app.env}
+    SQS_REGION: ${file(./env/params-${self:custom.stage}.yml):queue.sqs.region}
+    SQS_ACCESS_KEY: ${file(./env/params-${self:custom.stage}.yml):queue.sqs.acces_key}
+    SQS_SECRET_KEY: ${file(./env/params-${self:custom.stage}.yml):queue.sqs.secret_key}
+    SQS_QUEUE_URL: ${file(./env/params-${self:custom.stage}.yml):queue.sqs.queue_url}
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  serverless-offline:
+    httpPort: 3032
+    lambdaPort: 3003
+    prefix: ""
+    noPrependStageInUrl: true
+
+functions:
+  index:
+    handler: index.handler
+    events:
+      - http:
+          path: /
+          method: get
+          cors: true
+
+plugins:
+  - serverless-offline
